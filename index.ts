@@ -19,10 +19,12 @@ io.on("connection", (socket: Socket) => {
   // job progress
   // broadcasts progress receive from render nodes to clients
   console.log(socket.id);
-  socket.on("job-progress", 
-  (job, { state, progress, server }) => {
+  socket.on("job-progress", (job, { state, progress, server }) => {
     io.emit("job-progress", { id: job.uid, state, progress, server });
-    console.log({ state, progress, server });
+  });
+
+  socket.on("job-logs", (id, data) => {
+    io.emit("job-logs", { id, data });
   });
 });
 
