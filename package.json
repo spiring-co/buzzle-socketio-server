@@ -27,6 +27,7 @@
   "homepage": "https://github.com/spiring-co/buzzle-socketio-server#readme",
   "dependencies": {
     "dotenv": "^8.2.0",
+    "node-fetch": "^2.6.1",
     "socket.io": "^3.1.1",
     "typescript": "^4.1.5"
   }
