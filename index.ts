@@ -7,6 +7,29 @@ dotenv.config();
 
 const { PORT, API_URL, API_TOKEN } = process.env;
 
+
+
+const getPendingAndErrorJobs = async () => {
+  const result = {};
+
+  const response = await fetch(
+    `${API_URL}/jobs?size=9999&fields=state&state[]=!finished`,
+    { headers: { Authorization: `Bearer ${API_TOKEN}` } }
+  );
+  const json = await response.json();
+
+  json.data.map((j) => {
+    if (j.state in result) {
+      result[j.state] += 1;
+    } else {
+      result[j.state] = 1;
+    }
+  });
+  return result;
+};
+
+
+
 const httpServer = createServer();
 const io = new Server(httpServer, {
   cors: {
@@ -36,25 +59,4 @@ setInterval(function () {
 }, 2000);
 
 console.log("💡 Socket server up on: " + PORT);
-// httpServer.listen(PORT);
-
-const getPendingAndErrorJobs = async () => {
-  const result = {};
-
-  const response = await fetch(
-    `${API_URL}/jobs?size=9999&fields=state&state[]=!finished`,
-    { headers: { Authorization: `Bearer ${API_TOKEN}` } }
-  );
-  const json = await response.json();
-
-  json.data.map((j) => {
-    if (j.state in result) {
-      result[j.state] += 1;
-    } else {
-      result[j.state] = 1;
-    }
-  });
-  return result;
-};
-
-getPendingAndErrorJobs().then(console.log);
+httpServer.listen(PORT);
