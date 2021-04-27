@@ -66,13 +66,20 @@ setInterval(function () {
   io.emit("server-status", "I'm fine 🔥");
 }, 2000);
 
+var executed = false;
 setInterval(function () {
   getPendingAndErrorJobs().then((result) => {
     console.log(result["started"])
     //if started jobs are over 50 then sends an email 
-    if(result["started"] >= 50){
+    if(result["started"] > 50){
       console.log("over 50")
-      mailPendingJobs();
+      if (!executed) {
+        executed = true;
+        mailPendingJobs();
+      }
+    }
+    if(result["started"] < 50){
+      executed = false
     }
     io.emit("job-status", result);
   });
