@@ -41,11 +41,11 @@ const io = new Server(httpServer, {
 const mailPendingJobs = async () =>{
   try {
     const result = await mailer.send({
-      to: TO_EMAIL,
+      to: ["utkarsh@spiring.co", "harsh@spiring.co"],
       from: FROM_EMAIL,
-      subject: "More than 50 pending jobs",
-      text: 'You have more than 50 pending jobs in the queue',
-      html: '<strong>You have more than 50 pending jobs in the queue</strong>',
+      subject: "More than 20 pending jobs",
+      text: 'You have more than 20 pending jobs in the queue',
+      html: '<strong>You have more than 20 pending jobs in the queue</strong>',
     });
     console.log(result);
   } catch (e) {
@@ -71,14 +71,14 @@ setInterval(function () {
   getPendingAndErrorJobs().then((result) => {
     console.log(result["started"])
     //if started jobs are over 50 then sends an email 
-    if(result["started"] > 50){
-      console.log("over 50")
+    if(result["started"] > 20){
+      console.log("over 20")
       if (!executed) {
         executed = true;
         mailPendingJobs();
       }
     }
-    if(result["started"] < 50){
+    if(result["started"] < 20){
       executed = false
     }
     io.emit("job-status", result);
