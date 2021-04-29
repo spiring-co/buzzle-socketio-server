@@ -69,16 +69,16 @@ setInterval(function () {
 var executed = false;
 setInterval(function () {
   getPendingAndErrorJobs().then((result) => {
-    console.log(result["started"])
-    //if started jobs are over 50 then sends an email 
-    if(result["started"] > 20){
+    console.log(result["created"])
+    //if created jobs are over 50 then sends an email 
+    if(result["created"] > 20){
       console.log("over 20")
       if (!executed) {
         executed = true;
         mailPendingJobs();
       }
     }
-    if(result["started"] < 20){
+    if(result["created"] < 20){
       executed = false
     }
     io.emit("job-status", result);
