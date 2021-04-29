@@ -41,7 +41,7 @@ const io = new Server(httpServer, {
 const mailPendingJobs = async () =>{
   try {
     const result = await mailer.send({
-      to: ["utkarsh@spiring.co", "harsh@spiring.co"],
+      to: ["utkarsh@spiring.co", "harsh@spiring.co","support@bulaava.in"],
       from: FROM_EMAIL,
       subject: "More than 20 pending jobs",
       text: 'You have more than 20 pending jobs in the queue',
