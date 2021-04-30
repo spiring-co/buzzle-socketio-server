@@ -3,11 +3,10 @@ import { createServer } from "http";
 import { Server, Socket } from "socket.io";
 import fetch from "node-fetch";
 import mailer from "@sendgrid/mail";
-import Mustache from "mustache";
 
 dotenv.config();
 
-const { PORT, API_URL, API_TOKEN, SENDGRID_API_KEY = "", FROM_EMAIL = "noreply@spiring.co", TO_EMAIL="harsh@spiring.co"} = process.env;
+const { PORT, API_URL, API_TOKEN, SENDGRID_API_KEY = "", FROM_EMAIL = "noreply@spiring.co"} = process.env;
 mailer.setApiKey(SENDGRID_API_KEY);
 
 const getPendingAndErrorJobs = async () => {
@@ -69,7 +68,8 @@ setInterval(function () {
 var executed = false;
 setInterval(function () {
   getPendingAndErrorJobs().then((result) => {
-    console.log(result["created"])
+    console.log(result)
+    io.emit("job-status", result);
     //if created jobs are over 50 then sends an email 
     if(result["created"] > 20){
       console.log("over 20")
@@ -81,7 +81,6 @@ setInterval(function () {
     if(result["created"] < 20){
       executed = false
     }
-    io.emit("job-status", result);
   });
 }, 2000);
 
