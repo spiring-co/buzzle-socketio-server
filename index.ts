@@ -7,18 +7,18 @@ import mailer from "@sendgrid/mail";
 dotenv.config();
 
 const {
-    PORT,
+    PORT=5000,
     API_URL,
     API_TOKEN,
     SENDGRID_API_KEY = "",
     FROM_EMAIL = "noreply@spiring.co",
 } = process.env;
 mailer.setApiKey(SENDGRID_API_KEY);
-
+let isAlertSent = false
 const getPendingAndErrorJobs = async () => {
     const result = {};
     const response = await fetch(
-        `${API_URL}/jobs?size=9999&fields=state&state[]=!finished`,
+        `${API_URL}/jobs?paginate=false&fields=state&state[]=!finished`,
         { headers: { Authorization: `Bearer ${API_TOKEN}` } },
     );
     const json = await response.json();
@@ -32,7 +32,6 @@ const getPendingAndErrorJobs = async () => {
     });
     return result;
 };
-// created
 
 const httpServer = createServer();
 const io = new Server(httpServer, {
@@ -65,34 +64,45 @@ const mailPendingJobs = async () => {
 io.on("connection", (socket: Socket) => {
     // job progress
     // broadcasts progress receive from render nodes to clients
-    console.log(socket.id);
     socket.on("job-progress", (data) => io.emit("job-progress", data));
     socket.on("job-logs", (data) => io.emit("job-logs", data));
+    socket.on("job-status", async (data) => {
+        const result = await getPendingAndErrorJobs()
+        io.emit("job-status", result)
+        if (result["created"] <= 20) {
+            isAlertSent = false
+            return
+        }
+        if (!isAlertSent && result["created"] > 20) {
+            //send alert
+            await mailPendingJobs()
+            isAlertSent = true
+        }
+
+    });
+
 });
 
 // server status
-setInterval(function () {
+const statusInterval = setInterval(function () {
     io.emit("server-status", "I'm fine 🔥");
-}, 2000);
+}, 5000);
 
-var executed = false;
-setInterval(function () {
-    getPendingAndErrorJobs().then((result) => {
-        console.log(result);
-        io.emit("job-status", result);
-        //if created jobs are over 50 then sends an email
-        if (result["created"] > 20) {
-            console.log("over 20");
-            if (!executed) {
-                executed = true;
-                mailPendingJobs();
-            }
-        }
-        if (result["created"] < 20) {
-            executed = false;
-        }
-    });
-}, 8000);
 
 console.log("💡 Socket server up on: " + PORT);
-httpServer.listen(PORT);
+const server = httpServer.listen(PORT);
+//clear interval if app shutdowns
+process.on("SIGTERM", shutDown);
+process.on("SIGINT", shutDown);
+function shutDown() {
+    clearInterval(statusInterval)
+    console.log("Cleared Inteval!")
+    server.close((err) => {
+        if (err) {
+            console.log(`Failed to close server due to: ${err.message}`)
+        } else {
+            console.log("Server closed")
+        }
+    })
+}
+
